@@ -1,7 +1,7 @@
 import sys
 import math
 class digit:
-    def __init__(self, previous, move, position):
+    def __init__(self, previous, move, position, depth=0):
         self.previous = previous
         self.digits = [0,0,0]
         if previous is not None:
@@ -30,6 +30,7 @@ class digit:
         else:
             self.digits = [int(x) for x in str(move)]
         self.position = position
+        self.depth = depth
 
     def value(self):
         v = self.digits[0]*100 + self.digits[1]*10 + self.digits[2]*1
@@ -84,7 +85,6 @@ def bfs(file):
     while frindge and count < 1000:
         count = count + 1
         curr = frindge.pop(0)
-        print('curr', curr.digits)
 
         if curr not in expanded:
             expanded.append(curr)
@@ -108,6 +108,14 @@ def bfs(file):
 
             i = i + 1
 
+    print('No solution found.')
+    # Print expanded
+    for i in range(len(expanded)):
+        if i != len(expanded) - 1:
+            print('{},'.format(expanded[i].print_value()), end='')
+        else:
+            print(expanded[i].print_value())
+
 
 
 def dfs(file):
@@ -123,7 +131,6 @@ def dfs(file):
     while frindge and count < 1000:
         count = count + 1
         curr = frindge.pop(0)
-        print('curr', curr.digits)
 
         if curr not in expanded:
             expanded.append(curr)
@@ -146,12 +153,76 @@ def dfs(file):
                         frindge.insert(0, newnode)
             i = i - 1
 
+    print('No solution found.')
+    # Print expanded
+    for i in range(len(expanded)):
+        if i != len(expanded) - 1:
+            print('{},'.format(expanded[i].print_value()), end='')
+        else:
+            print(expanded[i].print_value())
 
 
 
-def ids():
-    # TODO implement this method
-    pass
+
+
+def ids(file):
+    start, end, forbidden = read_file(file)
+    print(start, end, forbidden)
+    frindge = []
+    expanded = []
+    total_expanded = []
+    path = []
+    depth_limit = 0
+
+    count = 0
+    while count < 1000:
+
+        init = digit(None, start, -1, 1)
+        frindge = []
+        expanded = []
+        frindge.insert(0, init)
+        depth_limit = depth_limit + 1
+
+
+        while frindge:
+
+            count = count + 1
+            curr = frindge.pop(0)
+            depth = curr.depth
+
+            if count > 1000:
+                print('No solution found.')
+                # Print expanded
+                for i in range(len(total_expanded)):
+                    if i != len(total_expanded) - 1:
+                        print('{},'.format(total_expanded[i].print_value()), end='')
+                    else:
+                        print(total_expanded[i].print_value())
+
+            if depth > depth_limit:
+                continue
+            if curr not in expanded:
+                expanded.append(curr)
+            total_expanded.append(curr)
+
+            # Find the end
+            if curr.value() == end:
+                print_result(curr, total_expanded)
+                quit()
+
+            i = 2
+            while i > -1:
+                if curr.position != i:
+                    if curr.digits[i] != 9:
+                        newnodea = digit(curr, +1, i, depth + 1)
+                        if newnodea.value() not in forbidden:
+                            frindge.insert(0, newnodea)
+                    if curr.digits[i] != 0:
+                        newnode = digit(curr, -1, i, depth + 1)
+                        if newnode.value() not in forbidden:
+                            frindge.insert(0, newnode)
+                i = i - 1
+
 
 def greedy():
     # TODO
@@ -174,7 +245,7 @@ def main():
     elif mode == 'D':
         dfs(text_file)
     elif mode == 'I':
-        ids()
+        ids(text_file)
     elif mode == 'G':
         greedy()
     elif mode == 'A':
