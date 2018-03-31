@@ -35,6 +35,10 @@ class digit:
         v = self.digits[0]*100 + self.digits[1]*10 + self.digits[2]*1
         return v
 
+    def print_value(self):
+        str = '{}{}{}'.format(self.digits[0], self.digits[1], self.digits[2])
+        return str
+
 
 def read_file(file):
     f = open(file, 'r')
@@ -52,7 +56,7 @@ def print_result(node,expanded):
     tmp = node
     path = []
     while tmp is not None:
-        path.insert(0, tmp.value())
+        path.insert(0, tmp.print_value())
         tmp = tmp.previous
 
     for i in range(len(path)):
@@ -63,13 +67,48 @@ def print_result(node,expanded):
 
     for i in range(len(expanded)):
         if i != len(expanded) - 1:
-            print('{},'.format(expanded[i].value()), end='')
+            print('{},'.format(expanded[i].print_value()), end='')
         else:
-            print(expanded[i].value())
+            print(expanded[i].print_value())
 
-def bfs():
-    # TODO
-    pass
+def bfs(file):
+    start, end, forbidden = read_file(file)
+    print(start, end, forbidden)
+    frindge = []
+    expanded = []
+    path = []
+
+    init = digit(None, start, -1)
+    frindge.insert(0, init)
+    count = 0
+    while frindge and count < 1000:
+        count = count + 1
+        curr = frindge.pop(0)
+        print('curr', curr.digits)
+
+        if curr not in expanded:
+            expanded.append(curr)
+
+        # Find the end
+        if curr.value() == end:
+            print_result(curr, expanded)
+            quit()
+
+        i = 0
+        while i < 3:
+            if curr.position != i:
+                if curr.digits[i] != 0:
+                    newnode = digit(curr, -1, i)
+                    if newnode.value() not in forbidden:
+                        frindge.append(newnode)
+                if curr.digits[i] != 9:
+                    newnodea = digit(curr, +1, i)
+                    if newnodea.value() not in forbidden:
+                        frindge.append(newnodea)
+
+            i = i + 1
+
+
 
 def dfs(file):
     start, end, forbidden = read_file(file)
@@ -84,7 +123,7 @@ def dfs(file):
     while frindge and count < 1000:
         count = count + 1
         curr = frindge.pop(0)
-        print('curr',curr.digits)
+        print('curr', curr.digits)
 
         if curr not in expanded:
             expanded.append(curr)
@@ -131,7 +170,7 @@ def main():
     text_file = sys.argv[2]
 
     if mode == 'B':
-        bfs()
+        bfs(text_file)
     elif mode == 'D':
         dfs(text_file)
     elif mode == 'I':
@@ -144,9 +183,6 @@ def main():
         hill_climbling()
     else:
         print('Undefined mode!')
-
-
-
 
 if __name__ == "__main__":
     main()
