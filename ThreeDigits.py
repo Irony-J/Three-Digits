@@ -39,7 +39,7 @@ class digit:
         self.order = order
 
     def __eq__(self, other):
-        return (self.value() == other.value()) and ((self.position == other.position))
+        return (self.value() == other.value()) and ((self.position == other.position) and (self.previous.print_value() == other.print_value()))
 
     def update_heuristic(self, end):
         self.heuristic = math.fabs(self.digits[0] - math.floor(end / 100)) + math.fabs(self.digits[1] - math.floor((end % 100) / 10)) + math.fabs(self.digits[2] - math.floor(end % 10))
@@ -151,7 +151,7 @@ def dfs(file):
         count = count + 1
         curr = frindge.pop(0)
 
-        print('curr:', curr.digits)
+        # print('curr:', curr.digits)
         if curr not in expanded:
             expanded.append(curr)
 
@@ -175,7 +175,13 @@ def dfs(file):
                             frindge.insert(0, newnode)
                 i = i - 1
 
+        # else:
+        #     found = expanded[expanded.index(curr)]
+        #     print('found:{}, previous:{}, position:{}'.format(found.print_value(), found.previous.print_value(), found.position))
+        #     print('curr:{}, previous:{}, position:{}'.format(curr.print_value(), curr.previous.print_value(), curr.position))
+
     print('No solution found.')
+    print('Total expanded:', len(expanded))
     # Print expanded
     for i in range(len(expanded)):
         if i != len(expanded) - 1:
@@ -226,25 +232,25 @@ def ids(file):
                 continue
             if curr not in expanded:
                 expanded.append(curr)
-            total_expanded.append(curr)
+                total_expanded.append(curr)
 
-            # Find the end
-            if curr.value() == end:
-                print_result(curr, total_expanded)
-                quit()
+                # Find the end
+                if curr.value() == end:
+                    print_result(curr, total_expanded)
+                    quit()
 
-            i = 2
-            while i > -1:
-                if curr.position != i:
-                    if curr.digits[i] != 9:
-                        newnodea = digit(curr, +1, i, depth + 1)
-                        if newnodea.value() not in forbidden:
-                            frindge.insert(0, newnodea)
-                    if curr.digits[i] != 0:
-                        newnode = digit(curr, -1, i, depth + 1)
-                        if newnode.value() not in forbidden:
-                            frindge.insert(0, newnode)
-                i = i - 1
+                i = 2
+                while i > -1:
+                    if curr.position != i:
+                        if curr.digits[i] != 9:
+                            newnodea = digit(curr, +1, i, depth + 1)
+                            if newnodea.value() not in forbidden:
+                                frindge.insert(0, newnodea)
+                        if curr.digits[i] != 0:
+                            newnode = digit(curr, -1, i, depth + 1)
+                            if newnode.value() not in forbidden:
+                                frindge.insert(0, newnode)
+                    i = i - 1
 
 
 def greedy(file):
