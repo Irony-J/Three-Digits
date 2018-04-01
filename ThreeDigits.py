@@ -28,11 +28,18 @@ class digit:
 
 
         else:
-            self.digits = [int(x) for x in str(move)]
+            self.digits[0] = math.floor(move / 100)
+            self.digits[1] = math.floor((move % 100) / 10)
+            self.digits[2] = math.floor(move % 10)
+
+
         self.position = position
         self.depth = depth
         self.heuristic = heuristic
         self.order = order
+
+    def __eq__(self, other):
+        return (self.value() == other.value()) and ((self.position == other.position))
 
     def update_heuristic(self, end):
         self.heuristic = math.fabs(self.digits[0] - math.floor(end / 100)) + math.fabs(self.digits[1] - math.floor((end % 100) / 10)) + math.fabs(self.digits[2] - math.floor(end % 10))
@@ -77,9 +84,14 @@ def print_result(node,expanded):
         else:
             print(expanded[i].print_value())
 
+def expanded_detect(expanded):
+
+    for i in range(1,len(expanded)):
+        print('{}, previous:{} position:{}'.format(expanded[i].print_value(), expanded[i].previous.print_value(), expanded[i].position))
+
 def bfs(file):
     start, end, forbidden = read_file(file)
-    print(start, end, forbidden)
+    # print(start, end, forbidden)
     frindge = []
     expanded = []
     path = []
@@ -91,27 +103,29 @@ def bfs(file):
         count = count + 1
         curr = frindge.pop(0)
 
+        # print('curr:', curr.print_value())
         if curr not in expanded:
             expanded.append(curr)
 
-        # Find the end
-        if curr.value() == end:
-            print_result(curr, expanded)
-            quit()
-
-        i = 0
-        while i < 3:
-            if curr.position != i:
-                if curr.digits[i] != 0:
-                    newnode = digit(curr, -1, i)
-                    if newnode.value() not in forbidden:
-                        frindge.append(newnode)
-                if curr.digits[i] != 9:
-                    newnodea = digit(curr, +1, i)
-                    if newnodea.value() not in forbidden:
-                        frindge.append(newnodea)
-
-            i = i + 1
+            # Find the end
+            if curr.value() == end:
+                print_result(curr, expanded)
+                # expanded_detect(expanded)
+                quit()
+            
+            i = 0
+            while i < 3:
+                if curr.position != i:
+                    if curr.digits[i] != 0:
+                        newnode = digit(curr, -1, i)
+                        if newnode.value() not in forbidden:
+                            frindge.append(newnode)
+                    if curr.digits[i] != 9:
+                        newnodea = digit(curr, +1, i)
+                        if newnodea.value() not in forbidden:
+                            frindge.append(newnodea)
+            
+                i = i + 1
 
     print('No solution found.')
     # Print expanded
@@ -125,7 +139,7 @@ def bfs(file):
 
 def dfs(file):
     start, end, forbidden = read_file(file)
-    print(start, end, forbidden)
+    # print(start, end, forbidden)
     frindge = []
     expanded = []
     path = []
@@ -137,26 +151,29 @@ def dfs(file):
         count = count + 1
         curr = frindge.pop(0)
 
+        print('curr:', curr.digits)
         if curr not in expanded:
             expanded.append(curr)
 
-        # Find the end
-        if curr.value() == end:
-            print_result(curr, expanded)
-            quit()
-
-        i = 2
-        while i > -1:
-            if curr.position != i:
-                if curr.digits[i] != 9:
-                    newnodea = digit(curr, +1, i)
-                    if newnodea.value() not in forbidden:
-                        frindge.insert(0, newnodea)
-                if curr.digits[i] != 0:
-                    newnode = digit(curr, -1, i)
-                    if newnode.value() not in forbidden:
-                        frindge.insert(0, newnode)
-            i = i - 1
+            # Find the end
+            if curr.value() == end:
+                print_result(curr, expanded)
+                quit()
+            
+            i = 2
+            while i > -1:
+                if curr.position != i:
+                    if curr.digits[i] != 9:
+                        newnodea = digit(curr, +1, i)
+                        if newnodea.value() not in forbidden:
+                            # print('new:', newnodea.digits)
+                            frindge.insert(0, newnodea)
+                    if curr.digits[i] != 0:
+                        newnode = digit(curr, -1, i)
+                        if newnode.value() not in forbidden:
+                            # print('new:', newnode.digits)
+                            frindge.insert(0, newnode)
+                i = i - 1
 
     print('No solution found.')
     # Print expanded
@@ -172,7 +189,7 @@ def dfs(file):
 
 def ids(file):
     start, end, forbidden = read_file(file)
-    print(start, end, forbidden)
+    # print(start, end, forbidden)
     frindge = []
     expanded = []
     total_expanded = []
@@ -232,7 +249,7 @@ def ids(file):
 
 def greedy(file):
     start, end, forbidden = read_file(file)
-    print(start, end, forbidden)
+    # print(start, end, forbidden)
     frindge = []
     expanded = []
     path = []
@@ -285,7 +302,7 @@ def greedy(file):
 
 def a_star(file):
     start, end, forbidden = read_file(file)
-    print(start, end, forbidden)
+    # print(start, end, forbidden)
     frindge = []
     expanded = []
     path = []
@@ -338,9 +355,64 @@ def a_star(file):
         else:
             print(expanded[i].print_value())
 
-def hill_climbling():
-    # TODO
-    pass
+def hill_climbling(file):
+    start, end, forbidden = read_file(file)
+    # print(start, end, forbidden)
+    frindge = []
+    expanded = []
+    path = []
+    order = 0
+    depth = 0
+
+    init = digit(None, start, -1, depth=depth, order=order)
+    init.update_heuristic(end)
+    best = init.heuristic
+    curr_best = best
+
+    frindge.insert(0, init)
+    count = 0
+    while frindge and count < 1000:
+        count = count + 1
+        frindge.sort(key=lambda x: (x.heuristic, x.order), reverse=False)
+        curr = frindge.pop(0)
+        # print('curr:{}, h():{}, depth:{}'.format(curr.value(), curr.heuristic, curr.depth))
+        frindge.clear()
+
+        if curr not in expanded:
+            expanded.append(curr)
+
+        # Find the end
+        if curr.value() == end:
+            print_result(curr, expanded)
+            quit()
+
+        i = 0
+        while i < 3:
+            if curr.position != i:
+                if curr.digits[i] != 0:
+                    newnode = digit(curr, -1, i, order=order-1)
+                    newnode.update_heuristic(end)
+                    if newnode.value() not in forbidden and newnode.heuristic <= best:
+                        best = newnode.heuristic
+                        order = order - 1
+                        frindge.append(newnode)
+                if curr.digits[i] != 9:
+                    newnodea = digit(curr, +1, i, order=order-1)
+                    newnodea.update_heuristic(end)
+                    if newnodea.value() not in forbidden and newnodea.heuristic <= best:
+                        best = newnodea.heuristic
+                        order = order - 1
+                        frindge.append(newnodea)
+
+            i = i + 1
+
+    print('No solution found.')
+    # Print expanded
+    for i in range(len(expanded)):
+        if i != len(expanded) - 1:
+            print('{},'.format(expanded[i].print_value()), end='')
+        else:
+            print(expanded[i].print_value())
 
 def main():
     mode = sys.argv[1]
@@ -357,7 +429,7 @@ def main():
     elif mode == 'A':
         a_star(text_file)
     elif mode == 'H':
-        hill_climbling()
+        hill_climbling(text_file)
     else:
         print('Undefined mode!')
 
