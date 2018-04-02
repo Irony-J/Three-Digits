@@ -39,7 +39,7 @@ class digit:
         self.order = order
 
     def __eq__(self, other):
-        return (self.value() == other.value()) and ((self.position == other.position) and (self.previous.print_value() == other.print_value()))
+        return (self.value() == other.value()) and (self.position == other.position)
 
     def update_heuristic(self, end):
         self.heuristic = math.fabs(self.digits[0] - math.floor(end / 100)) + math.fabs(self.digits[1] - math.floor((end % 100) / 10)) + math.fabs(self.digits[2] - math.floor(end % 10))
@@ -148,17 +148,20 @@ def dfs(file):
     frindge.insert(0, init)
     count = 0
     while frindge and count < 1000:
-        count = count + 1
+
         curr = frindge.pop(0)
+
+        # Find the end
+        if curr.value() == end:
+            if curr not in expanded:
+                expanded.append(curr)
+            print_result(curr, expanded)
+            quit()
 
         # print('curr:', curr.digits)
         if curr not in expanded:
             expanded.append(curr)
-
-            # Find the end
-            if curr.value() == end:
-                print_result(curr, expanded)
-                quit()
+            count = count + 1
             
             i = 2
             while i > -1:
@@ -179,9 +182,10 @@ def dfs(file):
         #     found = expanded[expanded.index(curr)]
         #     print('found:{}, previous:{}, position:{}'.format(found.print_value(), found.previous.print_value(), found.position))
         #     print('curr:{}, previous:{}, position:{}'.format(curr.print_value(), curr.previous.print_value(), curr.position))
-
+        #     print('\n')
     print('No solution found.')
-    print('Total expanded:', len(expanded))
+    # print('Total expanded:', len(expanded))
+    # expanded_detect(expanded)
     # Print expanded
     for i in range(len(expanded)):
         if i != len(expanded) - 1:
@@ -214,23 +218,28 @@ def ids(file):
 
         while frindge:
 
-            count = count + 1
+
             curr = frindge.pop(0)
             depth = curr.depth
 
-            if count > 1000:
-                print('No solution found.')
-                # Print expanded
-                for i in range(len(total_expanded)):
-                    if i != len(total_expanded) - 1:
-                        print('{},'.format(total_expanded[i].print_value()), end='')
-                    else:
-                        print(total_expanded[i].print_value())
-                quit()
+
 
             if depth > depth_limit:
                 continue
             if curr not in expanded:
+
+                count = count + 1
+                if count > 1000:
+                    print('No solution found.')
+                    # Print expanded
+                    # print(len(total_expanded))
+                    for i in range(len(total_expanded)):
+                        if i != len(total_expanded) - 1:
+                            print('{},'.format(total_expanded[i].print_value()), end='')
+                        else:
+                            print(total_expanded[i].print_value())
+                    quit()
+
                 expanded.append(curr)
                 total_expanded.append(curr)
 
@@ -251,6 +260,11 @@ def ids(file):
                             if newnode.value() not in forbidden:
                                 frindge.insert(0, newnode)
                     i = i - 1
+
+            # else:
+            #     found = expanded[expanded.index(curr)]
+            #     print('found:{}, previous:{}, position:{}'.format(found.print_value(), found.previous.print_value(), found.position))
+            #     print('curr:{}, previous:{}, position:{}'.format(curr.print_value(), curr.previous.print_value(), curr.position))
 
 
 def greedy(file):
@@ -308,7 +322,7 @@ def greedy(file):
 
 def a_star(file):
     start, end, forbidden = read_file(file)
-    # print(start, end, forbidden)
+    #print(start, end, forbidden)
     frindge = []
     expanded = []
     path = []
@@ -324,34 +338,37 @@ def a_star(file):
         count = count + 1
         frindge.sort(key=lambda x: (x.heuristic + x.depth, x.order), reverse=False)
         curr = frindge.pop(0)
-        # print('curr:{}, h():{}, depth:{}'.format(curr.value(), curr.heuristic, curr.depth))
+        #print('curr:{}, h():{}, depth:{}'.format(curr.value(), curr.heuristic, curr.depth))
 
-        if curr not in expanded:
-            expanded.append(curr)
+
 
         # Find the end
         if curr.value() == end:
+            expanded.append(curr)
             print_result(curr, expanded)
             quit()
 
-        i = 0
-        while i < 3:
-            if curr.position != i:
-                if curr.digits[i] != 0:
-                    newnode = digit(curr, -1, i, depth=depth+1, order=order-1)
-                    newnode.update_heuristic(end)
-                    if newnode.value() not in forbidden:
-                        order = order - 1
-                        frindge.append(newnode)
-                if curr.digits[i] != 9:
-                    newnodea = digit(curr, +1, i, depth=depth+1, order=order-1)
-                    newnodea.update_heuristic(end)
-                    if newnodea.value() not in forbidden:
-                        order = order - 1
-                        frindge.append(newnodea)
-
-            i = i + 1
-        depth = depth + 1
+        if curr not in expanded:
+            expanded.append(curr)
+            depth = curr.depth
+            i = 0
+            while i < 3:
+                if curr.position != i:
+                    if curr.digits[i] != 0:
+                        newnode = digit(curr, -1, i, depth=depth+1, order=order-1)
+                        newnode.update_heuristic(end)
+                        if newnode.value() not in forbidden:
+                            order = order - 1
+                            frindge.append(newnode)
+                    if curr.digits[i] != 9:
+                        newnodea = digit(curr, +1, i, depth=depth+1, order=order-1)
+                        newnodea.update_heuristic(end)
+                        if newnodea.value() not in forbidden:
+                            order = order - 1
+                            frindge.append(newnodea)
+            
+                i = i + 1
+            depth = depth + 1
 
     print('No solution found.')
     # Print expanded
